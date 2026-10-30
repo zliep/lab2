@@ -1,0 +1,50 @@
+-- Задание 1.
+-- Выбрать дни недели, в которые почтовые отделения работают больше 8 часов.
+
+SELECT DISTINCT den_nedeli
+FROM public.grafiki
+WHERE (konec_raboty - nachalo_raboty)
+     - COALESCE(konec_pereryva - nachalo_pereryva, INTERVAL '0')
+     > INTERVAL '8 hours'
+ORDER BY den_nedeli;
+
+
+-- Задание 2.
+-- Выбрать отделы почтовых отделений, которые обслуживают
+-- только физических лиц и принимают заказные письма.
+
+SELECT *
+FROM otdely
+WHERE fizicheskie_lica = TRUE
+  AND yuridicheskie_lica = FALSE
+  AND funkcii ILIKE '%заказн%';
+  -- Задание 3.
+-- Создать таблицу с данными запроса 1, включая время начала
+-- и окончания работы, время начала и окончания перерывов
+-- и данные об отделах.
+DROP TABLE IF EXISTS public.rezultaty_22;
+
+ 
+
+SELECT
+   q.kod_pochty,
+   q.den_nedeli,
+   q.nachalo_raboty,
+   q.konec_raboty,
+   q.nachalo_pereryva,
+   q.konec_pereryva,
+   o.kod_otdela,
+   o.nazvanie,
+   o.fizicheskie_lica,
+   o.yuridicheskie_lica,
+   o.funkcii
+INTO public.rezultaty_22
+FROM (
+   SELECT *
+   FROM public.grafiki
+   WHERE (konec_raboty - nachalo_raboty)
+         - COALESCE(konec_pereryva - nachalo_pereryva, INTERVAL '0')
+         > INTERVAL '8 hours'
+) AS q
+JOIN public.otdely AS o
+   ON q.kod_otdela = o.kod_otdela;
